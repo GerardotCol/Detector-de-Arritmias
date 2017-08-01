@@ -1,0 +1,47 @@
+#:import MeshLinePlot kivy.garden.graph.MeshLinePlot
+Logic:
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            size_hint: [1, .2]
+            Label:
+                text: "BPM"
+            Label:
+                text:  str(root.score)
+
+            Label:
+                text: "Time"
+            Label:
+                text:  str(root.time)
+
+
+        # BoxLayout:
+        #     size_hint: [1, .3]
+        #     Graph:
+        #         id: graph
+        #         xlabel: ""
+        #         ylabel: "Levels"
+
+        BoxLayout:
+            size_hint: [1, .6]
+            Graph:
+                id: graph
+                xlabel: ""
+                ylabel: "Levels"
+
+        BoxLayout:
+            size_hint: [1, .2]
+            orientation: "horizontal"
+            Button:
+                text: "START"
+                bold: True
+                on_press: root.start()
+            Button:
+                text: "STOP"
+                bold: True
+                on_press: root.stop()
+            Button:
+                text: "RECORD"
+                #text: str(root.player1.score)
+                bold: True
+                on_press: root.record()
