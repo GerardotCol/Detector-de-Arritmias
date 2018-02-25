@@ -28,10 +28,7 @@ for pin in PINS:
     board.analog[pin].enable_reporting()
 
 def get_microphone_level():
-    """
-    source: http://stackoverflow.com/questions/26478315/getting-volume-levels-from-pyaudio-for-use-in-arduino
-    audioop.max alternative to audioop.rms
-    """
+
     chunk = 1024
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
