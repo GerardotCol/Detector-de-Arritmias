@@ -1,4 +1,4 @@
-"""Niveles analógicos en tiempo real usando Arduino Uno
+"""Real time plotting of Microphone level using kivy
 """
 
 from kivy.lang import Builder
@@ -9,57 +9,58 @@ from kivy.clock import Clock
 from threading import Thread
 import audioop
 import pyaudio
-from math import sin
+
 from kivy.properties import NumericProperty
+
 from pyfirmata import Arduino, util
 import numpy as np
 import queue
 
-board = Arduino('COM7') #Puerto conectado al Arduino
+board = Arduino('COM7')
 
-print("Setting up the connection to the board")
+print ("Setting up the connection to the board ")
 it = util.Iterator(board)
 it.start()
 
 PINS = (0, 1, 2, 3)
 
-for pin in PINS: #Todos los puertos analogicos son habilitados
+for pin in PINS:
     board.analog[pin].enable_reporting()
 
-def get_level():
-
-    # chunk = 1024
-    # FORMAT = pyaudio.paInt16
-    # CHANNELS = 1
-    # RATE = 44100
-    # p = pyaudio.PyAudio()
-    # s = p.open(format=FORMAT,
-    #            channels=CHANNELS,
-    #            rate=RATE,
-    #            input=True,
-    #            frames_per_buffer=chunk)
-    global levels #variable global para el hilo,
-    global aa     #variable para media (average) 10 ultimas lecturas
-    lifo_queue = queue.LifoQueue(10) #Queue Lifo de 10 niveles
-
+def get_microphone_level():
+    """
+    source: http://stackoverflow.com/questions/26478315/getting-volume-levels-from-pyaudio-for-use-in-arduino
+    audioop.max alternative to audioop.rms
+    """
+    chunk = 1024
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
+    RATE = 44100
+    p = pyaudio.PyAudio()
+    s = p.open(format=FORMAT,
+               channels=CHANNELS,
+               rate=RATE,
+               input=True,
+               frames_per_buffer=chunk)
+    global levels
+    global aa
+    lifo_queue = queue.LifoQueue(10)
     for i in range(10):
         lifo_queue.put(board.analog[2].read())
-
-    levels = np.zeros(100) #numpy vector of 100 elements
-    i = 50                 #slice variable
+    levels = np.zeros(100)
+    i = 50
 
     while True:
-        #data = s.read(chunk)
-        #mx = audioop.rms(data, 4)
+        data = s.read(chunk)
+        mx = audioop.rms(data, 4)
         levels[i] = board.analog[2].read()
         i = i + 1
-        lifo_queue.get() #se quita
-        lifo_queue.put(board.analog[2].read()) #se agrega
-        aa = np.average(lifo_queue.queue)      #calculo del promedio
-        print(aa)
-
-        if i == 99:                           #tope del indice
+        lifo_queue.get()
+        lifo_queue.put(board.analog[2].read())
+        aa = np.average(lifo_queue.queue)
+        if i == 99:
             i = 0
+
 
 class Logic(BoxLayout):
 
@@ -70,13 +71,17 @@ class Logic(BoxLayout):
         self.plot = MeshLinePlot(color=[1, 0, 0, 1])
 
     def start(self):
-        self.ids.graph.add_plot(self.plot)
+        self.ids.graph3.add_plot(self.plot)        
+        self.ids.graph2.add_plot(self.plot)
+        self.ids.graph1.add_plot(self.plot)
+
         Clock.schedule_interval(self.get_value, 0.001)
 
     def stop(self):
         Clock.unschedule(self.get_value)
 
     def get_value(self, dt):
+
         self.plot.points = [(i, j * 300 ) for i, j in enumerate(levels)]
         self.BPM  = int(aa*300)
 
@@ -85,8 +90,8 @@ class RealTimeMicrophone(App):
         return Builder.load_file("look.kv")
 
 if __name__ == "__main__":
-    levels = []
-    get_level_thread = Thread(target = get_level)
+    levels = []  # store levels of microphone
+    get_level_thread = Thread(target = get_microphone_level)
     get_level_thread.daemon = True
     get_level_thread.start()
     RealTimeMicrophone().run()

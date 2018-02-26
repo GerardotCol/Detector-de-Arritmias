@@ -3,20 +3,30 @@ Logic:
     BoxLayout:
         orientation: "vertical"
         BoxLayout:
+            orientation: "vertical"
             size_hint: [1, .8]
             Graph:
-                id: graph
+                id: graph1
+                xlabel: ""
+                ylabel: "Level"
+            Graph:
+                id: graph2
+                xlabel: ""
+                ylabel: "Level"
+            Graph:
+                id: graph3
                 xlabel: ""
                 ylabel: "Level"
 
         BoxLayout:
+            size_hint: [1, .1]
             Label:
                 text:"BPM"
             Label:
                 text:str(root.BPM)
 
         BoxLayout:
-            size_hint: [1, .2]
+            size_hint: [1, .1]
             orientation: "horizontal"
             Button:
                 text: "START"
