@@ -86,8 +86,22 @@ class Logic(BoxLayout):
 
         self.plot1.points = [(i, j * 300 ) for i, j in enumerate(levels)]
         self.plot2.points = [(i, (j*40)**3 ) for i, j in enumerate(levels)]
-        self.plot3.points = [(i, j * 300 ) for i, j in enumerate(levels)]
+        #self.plot3.points = [(i, j * 300 ) for i, j in enumerate(np.asarray(levels))]
+        A = np.asarray(levels)
+        B = np.arange(levels.size)
+
+        ps = np.abs(np.fft.fft(A))**2
+        #print(ps.size) #100
+        time_step = 1 / 30
+        freqs = np.fft.fftfreq(A.size, time_step)
+        self.plot3.points = np.stack((freqs,ps*2), axis=-1)
+
+        #self.plot3.points = [B,A]
+        #self.plot3.points = np.stack((B, A*300), axis=-1) #no borrar
+        #self.plot3.points = np.asarray(levels)
+        #self.plot3.points = np.stack((np.arange(levels.size), np.asarray(levels)), axis=-1)
         self.BPM  = int(aa*300)
+
 
 class RealTimeMicrophone(App):
     def build(self):
