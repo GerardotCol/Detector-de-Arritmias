@@ -62,19 +62,21 @@ def get_microphone_level():
             i = 0
 
 
+
 class Logic(BoxLayout):
 
     BPM = NumericProperty(0)
 
     def __init__(self,):
         super(Logic, self).__init__()
-        self.plot = MeshLinePlot(color=[1, 0, 0, 1])
+        self.plot1 = MeshLinePlot(color=[1, 0, 0, 1])
+        self.plot2 = MeshLinePlot(color=[0, 1, 0, 1])
+        self.plot3 = MeshLinePlot(color=[0, 0, 1, 1])
 
     def start(self):
-        self.ids.graph3.add_plot(self.plot)        
-        self.ids.graph2.add_plot(self.plot)
-        self.ids.graph1.add_plot(self.plot)
-
+        self.ids.graph1.add_plot(self.plot1)
+        self.ids.graph2.add_plot(self.plot2)
+        self.ids.graph3.add_plot(self.plot3)
         Clock.schedule_interval(self.get_value, 0.001)
 
     def stop(self):
@@ -82,7 +84,9 @@ class Logic(BoxLayout):
 
     def get_value(self, dt):
 
-        self.plot.points = [(i, j * 300 ) for i, j in enumerate(levels)]
+        self.plot1.points = [(i, j * 300 ) for i, j in enumerate(levels)]
+        self.plot2.points = [(i, (j*40)**3 ) for i, j in enumerate(levels)]
+        self.plot3.points = [(i, j * 300 ) for i, j in enumerate(levels)]
         self.BPM  = int(aa*300)
 
 class RealTimeMicrophone(App):
