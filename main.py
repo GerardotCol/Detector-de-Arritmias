@@ -1,4 +1,4 @@
-"""Real time plotting of Microphone level using kivy
+"""Niveles analógicos en tiempo real usando Arduino Uno
 """
 
 from kivy.lang import Builder
@@ -15,48 +15,50 @@ from pyfirmata import Arduino, util
 import numpy as np
 import queue
 
-board = Arduino('COM7')
+board = Arduino('COM7') #Puerto conectado al Arduino
 
-print ("Setting up the connection to the board")
+print("Setting up the connection to the board")
 it = util.Iterator(board)
 it.start()
 
 PINS = (0, 1, 2, 3)
 
-for pin in PINS:
+for pin in PINS: #Todos los puertos analogicos son habilitados
     board.analog[pin].enable_reporting()
 
 def get_level():
 
-    chunk = 1024
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 44100
-    p = pyaudio.PyAudio()
-    s = p.open(format=FORMAT,
-               channels=CHANNELS,
-               rate=RATE,
-               input=True,
-               frames_per_buffer=chunk)
-    global levels
-    global aa
-    lifo_queue = queue.LifoQueue(10)
+    # chunk = 1024
+    # FORMAT = pyaudio.paInt16
+    # CHANNELS = 1
+    # RATE = 44100
+    # p = pyaudio.PyAudio()
+    # s = p.open(format=FORMAT,
+    #            channels=CHANNELS,
+    #            rate=RATE,
+    #            input=True,
+    #            frames_per_buffer=chunk)
+    global levels #variable global para el hilo,
+    global aa     #variable para media (average) 10 ultimas lecturas
+    lifo_queue = queue.LifoQueue(10) #Queue Lifo de 10 niveles
+
     for i in range(10):
         lifo_queue.put(board.analog[2].read())
-    levels = np.zeros(100)
-    i = 50
+
+    levels = np.zeros(100) #numpy vector of 100 elements
+    i = 50                 #slice variable
 
     while True:
-        data = s.read(chunk)
-        mx = audioop.rms(data, 4)
+        #data = s.read(chunk)
+        #mx = audioop.rms(data, 4)
         levels[i] = board.analog[2].read()
         i = i + 1
-        lifo_queue.get()
-        lifo_queue.put(board.analog[2].read())
-        aa = np.average(lifo_queue.queue)
+        lifo_queue.get() #se quita
+        lifo_queue.put(board.analog[2].read()) #se agrega
+        aa = np.average(lifo_queue.queue)      #calculo del promedio
         print(aa)
 
-        if i == 99:
+        if i == 99:                           #tope del indice
             i = 0
 
 class Logic(BoxLayout):
@@ -70,7 +72,6 @@ class Logic(BoxLayout):
     def start(self):
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, 0.001)
-
 
     def stop(self):
         Clock.unschedule(self.get_value)
